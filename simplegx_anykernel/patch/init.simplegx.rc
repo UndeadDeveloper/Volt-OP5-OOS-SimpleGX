@@ -1,0 +1,31 @@
+# SimpleGX KERNEL init script for OnePlus 5
+
+on late-fs
+
+	# set sdcard buffer default to 1024kb
+	write /sys/block/sda/queue/read_ahead_kb 2048
+	
+on property:sys.boot_completed=1	
+
+    # according to Qcom this legacy value improves first launch latencies
+    # stock value is 512k
+    setprop dalvik.vm.heapminfree 2m
+
+	# turn off debugging for certain modules
+	write /sys/module/kernel/parameters/initcall_debug 0
+	write /sys/module/lowmemorykiller/parameters/debug_level 0
+	write /sys/module/alarm/parameters/debug_mask 0
+	write /sys/module/alarm_dev/parameters/debug_mask 0
+	write /sys/module/binder/parameters/debug_mask 0
+	write /sys/module/xt_qtaguid/parameters/debug_mask 0
+
+	# disable some wakelocks
+	write /sys/module/wakeup/parameters/enable_qcom_rx_wakelock_ws 0
+	write /sys/module/wakeup/parameters/enable_wlan_extscan_wl_ws 0
+	write /sys/module/wakeup/parameters/enable_ipa_ws 0
+	write /sys/module/wakeup/parameters/enable_wlan_wow_wl_ws 0
+	write /sys/module/wakeup/parameters/enable_wlan_ws 0
+	write /sys/module/wakeup/parameters/enable_timerfd_ws 0
+	write /sys/module/wakeup/parameters/enable_netlink_ws 0
+	write /sys/module/wakeup/parameters/enable_netmgr_wl_ws 0
+
