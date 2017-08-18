@@ -12,7 +12,7 @@
 # Parameters to be configured manually
 #######################################
 
-SIMPLEGX_VERSION="OP5-OOS_v1.02"
+SIMPLEGX_VERSION="OP5-OOS_v1.03"
 
 TOOLCHAIN="/home/androidgx/projects/toolchains/google/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
 ARCHITECTURE=arm64
