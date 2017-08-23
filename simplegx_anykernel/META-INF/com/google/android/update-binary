@@ -118,7 +118,7 @@ fi;
 case $(basename "$ZIPFILE" .zip) in
   *-debugging)
     ui_print " ";
-    ui_print "Creating debugging archive in zip directory...";
+    ui_print "Creating debugging archive in zip directory..";
     $bb tar -czvf "$DIR/anykernel2-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" /tmp/*;
   ;;
 esac;
@@ -135,3 +135,4 @@ ui_print "       * * * * * * * * * * * * * * *     ";
 ui_print "       *           DONE !          *     ";
 ui_print "       *     REBOOT AND ENJOY !    *     ";
 ui_print "       * * * * * * * * * * * * * * *     ";
+
