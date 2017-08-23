@@ -32,6 +32,9 @@ is_slot_device=0;
 # import patching functions/variables - see for reference
 . /tmp/anykernel/tools/ak2-core.sh;
 
+# permissions
+chmod -R 755 $ramdisk
+
 ## AnyKernel install
 dump_boot;
 
