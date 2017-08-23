@@ -8,7 +8,6 @@
 # begin properties
 properties() {
 do.devicecheck=1
-do.initd=0
 do.modules=1
 do.system_blobs=0
 do.cleanup=1
@@ -18,12 +17,10 @@ device.name2=OnePlus5
 device.name3=oneplus5
 device.name4=cheeseburger
 device.name5=
-}
-# end properties
+} # end properties
 
 # shell variables
 block=/dev/block/bootdevice/by-name/boot;
-add_seandroidenforce=0
 is_slot_device=0;
 
 ## end setup
@@ -44,12 +41,11 @@ dump_boot;
 # begin ramdisk changes
 
 # init.rc
-backup_file init.qcom.rc;
 insert_line init.qcom.rc "init.simplegx.rc" after "import init.qcom.test.rc" "import init.simplegx.rc";
+insert_line default.prop "ro.sys.fw.bg_apps_limit=60" before "ro.secure=1" "ro.sys.fw.bg_apps_limit=60";
 
 # end ramdisk changes
 
 write_boot;
 
 ## end install
-
