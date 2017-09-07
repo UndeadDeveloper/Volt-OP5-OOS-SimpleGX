@@ -47,3 +47,6 @@ on property:sys.post_boot.parsed=1
     write /sys/module/wakeup/parameters/enable_wlan_ipa_ws 0
     write /sys/module/wakeup/parameters/enable_wlan_pno_wl_ws 0
 
+    # OnePlus5 minimum backlight fix
+    write /sys/module/mdss_fb/parameters/backlight_min 8
+
