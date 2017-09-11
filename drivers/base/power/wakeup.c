@@ -21,6 +21,31 @@
 
 #include "power.h"
 
+static bool enable_wlan_rx_wake_ws = true;
+module_param(enable_wlan_rx_wake_ws, bool, 0644);
+static bool enable_wlan_ctrl_wake_ws = true;
+module_param(enable_wlan_ctrl_wake_ws, bool, 0644);
+static bool enable_wlan_wake_ws = true;
+module_param(enable_wlan_wake_ws, bool, 0644);
+static bool enable_qcom_rx_wakelock_ws = false;
+module_param(enable_qcom_rx_wakelock_ws, bool, 0644);
+static bool enable_wlan_extscan_wl_ws = true;
+module_param(enable_wlan_extscan_wl_ws, bool, 0644);
+static bool enable_wlan_wow_wl_ws = false;
+module_param(enable_wlan_wow_wl_ws, bool, 0644);
+static bool enable_bluedroid_timer_ws = true;
+module_param(enable_bluedroid_timer_ws, bool, 0644);
+static bool enable_ipa_ws = false;
+module_param(enable_ipa_ws, bool, 0644);
+static bool enable_wlan_ws = false;
+module_param(enable_wlan_ws, bool, 0644);
+static bool enable_timerfd_ws = true;
+module_param(enable_timerfd_ws, bool, 0644);
+static bool enable_netlink_ws = true;
+module_param(enable_netlink_ws, bool, 0644);
+static bool enable_netmgr_wl_ws = false;
+module_param(enable_netmgr_wl_ws, bool, 0644);
+
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
  * if wakeup events are registered during or immediately before the transition.
