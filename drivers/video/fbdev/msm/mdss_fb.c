@@ -88,12 +88,6 @@
 bool backlight_dimmer = false;
 module_param(backlight_dimmer, bool, 0755);
 
-int backlight_min = 0;
-int backlight_max = 255;
-
-module_param(backlight_min, int, 0755);
-module_param(backlight_max, int, 0755);
-
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
 
@@ -298,16 +292,6 @@ static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 
 	if (value > mfd->panel_info->brightness_max)
 		value = mfd->panel_info->brightness_max;
-
-	// Boeffla: apply min/max limits for LCD backlight (0 is exception for display off)
-	if (value != 0)
-	{
-		if (value < backlight_min)
-			value = backlight_min;
-
-		if (value > backlight_max)
-			value = backlight_max;
-	}
 
 	if (backlight_dimmer) {
 		MDSS_BRIGHT_TO_BL_DIM(bl_lvl, value);
@@ -699,7 +683,6 @@ static ssize_t mdss_fb_force_panel_dead(struct device *dev,
 		return len;
 	}
 
-	mdss_fb_report_panel_dead(mfd);
 //#endif
 	if (kstrtouint(buf, 0, &pdata->panel_info.panel_force_dead))
 		pr_err("kstrtouint buf error!\n");
@@ -1887,13 +1870,30 @@ static int mdss_fb_resume(struct platform_device *pdev)
 static int mdss_fb_pm_suspend(struct device *dev)
 {
 	struct msm_fb_data_type *mfd = dev_get_drvdata(dev);
+	int rc = 0;
 
 	if (!mfd)
 		return -ENODEV;
 
 	dev_dbg(dev, "display pm suspend\n");
 
-	return mdss_fb_suspend_sub(mfd);
+	rc = mdss_fb_suspend_sub(mfd);
+
+	/*
+	 * Call MDSS footswitch control to ensure GDSC is
+	 * off after pm suspend call. There are cases when
+	 * mdss runtime call doesn't trigger even when clock
+	 * ref count is zero after fb pm suspend.
+	 */
+	if (!rc) {
+		if (mfd->mdp.footswitch_ctrl)
+			mfd->mdp.footswitch_ctrl(false);
+	} else {
+		pr_err("fb pm suspend failed, rc: %d\n", rc);
+	}
+
+	return rc;
+
 }
 
 static int mdss_fb_pm_resume(struct device *dev)
@@ -1912,6 +1912,9 @@ static int mdss_fb_pm_resume(struct device *dev)
 	pm_runtime_disable(dev);
 	pm_runtime_set_suspended(dev);
 	pm_runtime_enable(dev);
+
+	if (mfd->mdp.footswitch_ctrl)
+		mfd->mdp.footswitch_ctrl(true);
 
 	return mdss_fb_resume_sub(mfd);
 }
@@ -2252,9 +2255,6 @@ static int mdss_fb_blank_unblank(struct msm_fb_data_type *mfd)
 	}
 
 error:
-    if (!mfd->panel_info->cont_splash_enabled){
-       mfd->panel_post_on = 1;
-    }
 //#endif
 	return ret;
 }
@@ -3996,10 +3996,6 @@ static int __mdss_fb_perform_commit(struct msm_fb_data_type *mfd)
 	}
 
 skip_commit:
-	if (mfd->panel_post_on == 1){
-		mfd->panel_post_on = 0;
-		mdss_fb_send_panel_event(mfd, MDSS_EVENT_POST_PANEL_ON, NULL);
-	}
 //#endif
 	if (!ret)
 		mdss_fb_update_backlight(mfd);
@@ -4042,14 +4038,9 @@ static int __mdss_fb_display_thread(void *data)
 				mfd->index);
 
 	while (1) {
-		ret = wait_event_interruptible(mfd->commit_wait_q,
+		wait_event(mfd->commit_wait_q,
 				(atomic_read(&mfd->commits_pending) ||
 				 kthread_should_stop()));
-
-		if (ret) {
-			pr_info("%s: interrupted", __func__);
-			continue;
-		}
 
 		if (kthread_should_stop())
 			break;
@@ -5192,6 +5183,15 @@ static int __ioctl_wait_idle(struct msm_fb_data_type *mfd, u32 cmd)
 	return ret;
 }
 
+static bool check_not_supported_ioctl(u32 cmd)
+{
+	return((cmd == MSMFB_OVERLAY_SET) || (cmd == MSMFB_OVERLAY_UNSET) ||
+		(cmd == MSMFB_OVERLAY_GET) || (cmd == MSMFB_OVERLAY_PREPARE) ||
+		(cmd == MSMFB_DISPLAY_COMMIT) || (cmd == MSMFB_OVERLAY_PLAY) ||
+		(cmd == MSMFB_BUFFER_SYNC) || (cmd == MSMFB_OVERLAY_QUEUE) ||
+		(cmd == MSMFB_NOTIFY_UPDATE));
+}
+
 /*
  * mdss_fb_do_ioctl() - MDSS Framebuffer ioctl function
  * @info:	pointer to framebuffer info
@@ -5225,6 +5225,11 @@ int mdss_fb_do_ioctl(struct fb_info *info, unsigned int cmd,
 	pdata = dev_get_platdata(&mfd->pdev->dev);
 	if (!pdata || pdata->panel_info.dynamic_switch_pending)
 		return -EPERM;
+
+	if (check_not_supported_ioctl(cmd)) {
+		pr_err("Unsupported ioctl\n");
+		return -EINVAL;
+	}
 
 	atomic_inc(&mfd->ioctl_ref_cnt);
 
