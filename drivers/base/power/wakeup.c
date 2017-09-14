@@ -50,6 +50,10 @@ static bool enable_bluetooth_timer_ws = false;
 module_param(enable_bluetooth_timer_ws, bool, 0644);
 static bool enable_wcnss_filter_lock_ws = false;
 module_param(enable_wcnss_filter_lock_ws, bool, 0644);
+static bool enable_alarmtimer_ws = false;
+module_param(enable_alarmtimer_ws, bool, 0644);
+static bool enable_fpc_ttw_wl_ws = false;
+module_param(enable_fpc_ttw_wl_ws, bool, 0644);
 
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
@@ -622,7 +626,11 @@ static bool wakeup_source_blocker(struct wakeup_source *ws)
 			(!enable_wcnss_filter_lock_ws &&
 				!strncmp(ws->name, "wcnss_filter_lock", wslen)) ||
 			(!enable_wlan_wow_wl_ws &&
-            			!strncmp(ws->name, "wlan_wow_wl", wslen)) ||	
+            			!strncmp(ws->name, "wlan_wow_wl", wslen)) ||
+		    	(!enable_alarmtimer_ws &&
+            			!strncmp(ws->name, "alarmtimer", wslen)) ||
+			(!enable_fpc_ttw_wl_ws &&
+            			!strncmp(ws->name, "fpc_ttw_wl", wslen)) ||
 			(!enable_wlan_ctrl_wake_ws &&
 				!strncmp(ws->name, "wlan_ctrl_wake", wslen))) {
 			if (ws->active) {
