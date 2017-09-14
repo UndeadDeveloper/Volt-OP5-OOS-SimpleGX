@@ -232,6 +232,7 @@ struct msm_mdp_interface {
 	int (*configure_panel)(struct msm_fb_data_type *mfd, int mode,
 				int dest_ctrl);
 	int (*input_event_handler)(struct msm_fb_data_type *mfd);
+	void (*footswitch_ctrl)(bool on);
 	int (*pp_release_fnc)(struct msm_fb_data_type *mfd);
 	void *private1;
 };
@@ -371,7 +372,6 @@ struct msm_fb_data_type {
 	bool pending_switch;
 	struct mutex switch_lock;
 	struct input_handler *input_handler;
-	int panel_post_on;
 //#endif
 };
 
